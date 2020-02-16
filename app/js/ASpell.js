@@ -1,7 +1,6 @@
 /*
  * Author: Zevin
  * Project: toServerless
- * Version: v0.1 - initial version - purely check the words locally
  */
 const ASpellWorkerPool = require('./ASpellWorkerPool')
 const LRU = require('lru-cache')
