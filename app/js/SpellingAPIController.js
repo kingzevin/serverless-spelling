@@ -3,7 +3,6 @@
  * Project: toServerless
  */
 const SpellingAPIManager = require('./SpellingAPIManager')
-const ASpell = require('./ASpell')
 
 function extractCheckRequestData(req) {
   const token = req.params ? req.params.user_id : undefined
