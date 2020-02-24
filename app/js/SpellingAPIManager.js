@@ -13,7 +13,6 @@ const SpellingAPIManager = {
   whitelist: ['ShareLaTeX', 'sharelatex', 'LaTeX', 'http', 'https', 'www'],
 
   learnWord(token, request, callback) {
-    //todo: 找到mongojs的 setting位置,配好,启动mongo容器,试试
     if (callback == null) {
       callback = () => { }
     }
@@ -26,6 +25,28 @@ const SpellingAPIManager = {
 
     return LearnedWordsManager.learnWord(token, request.word, callback)
   },
+
+  unlearnWord(token, request, callback) {
+    if (callback == null) {
+      callback = () => { }
+    }
+    if (request.word == null) {
+      return callback(new Error('malformed JSON'))
+    }
+    if (token == null) {
+      return callback(new Error('no token provided'))
+    }
+
+    return LearnedWordsManager.unlearnWord(token, request.word, callback)
+  },
+
+  deleteDic(token, callback) {
+    return LearnedWordsManager.deleteUsersLearnedWords(token, callback)
+  },
+
+  getDic(token, callback) {
+    return LearnedWordsManager.getLearnedWords(token, callback)
+  }
 }
 
 const promises = {

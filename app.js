@@ -18,13 +18,20 @@ const HealthCheckController = require('./app/js/HealthCheckController')
 
 function test(params = {}) {
   const operation = params.operation || "check";
+  params.user_id = params.user_id || "5dea50e08912bd02137651c2";
+  params.word = params.word || "yess";
+  params.words = params.words || ["yess", "zevina"];
 
   if (operation === "check")
     return SpellingAPIController.zCheck(params);
   else if(operation === "learn")
     return SpellingAPIController.zLearn(params);
+  else if(operation === "unlearn")
+    return SpellingAPIController.zUnlearn(params);
   else if(operation === "getDic")
-    return SpellingAPIController.zCheck(params);
+    return SpellingAPIController.zGetDic(params);
+  else if(operation === "deleteDic")
+    return SpellingAPIController.zDeleteDic(params);
   else return undefined;
 }
 
