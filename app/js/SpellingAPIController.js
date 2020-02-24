@@ -44,12 +44,12 @@ module.exports = {
     return { misspellings: results };
   },
 
-  zLearn(params) {
+  async zLearn(params) {
     metrics.inc('spelling-learn', 0.1);
     params.words = params.words || ["yess", "zevina"];
     const token = params.user_id || "5dea50e08912bd02137651c2";
-
-    logger.info({ token, params.words }, 'learning word')
+    words = params.words;
+    logger.info({ token, words }, 'learning word')
 
     let doneFlag = false;
     let errorFlag = false;
@@ -62,7 +62,7 @@ module.exports = {
       }
     });
 
-    while (doneFlag === null) {
+    while (doneFlag === false) {
       await sleep(1);
     }
 
