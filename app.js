@@ -23,6 +23,8 @@ function test(params = {}) {
     return SpellingAPIController.zCheck(params);
   else if(operation === "learn")
     return SpellingAPIController.zLearn(params);
+  else if(operation === "getDic")
+    return SpellingAPIController.zCheck(params);
   else return undefined;
 }
 

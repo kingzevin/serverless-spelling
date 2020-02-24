@@ -12,7 +12,7 @@ const REQUEST_LIMIT = 10000
 const SpellingAPIManager = {
   whitelist: ['ShareLaTeX', 'sharelatex', 'LaTeX', 'http', 'https', 'www'],
 
-  learnWord(token, words, callback) { 
+  learnWord(token, words, callback) {
     //todo: 找到mongojs的 setting位置,配好,启动mongo容器,试试
     if (callback == null) {
       callback = () => { }
@@ -39,7 +39,23 @@ const promises = {
     // only the first 10K words are checked
     const wordSlice = request.words.slice(0, REQUEST_LIMIT)
     const misspellings = await ASpell.promises.checkWords(lang, wordSlice)
-    return { misspellings }
+
+    // for learned words
+    if (token) {
+      const learnedWords = await LearnedWordsManager.promises.getLearnedWords(
+        token
+      )
+      const notLearntMisspellings = misspellings.filter(m => {
+        const word = wordSlice[m.index]
+        return (
+          learnedWords.indexOf(word) === -1 &&
+          SpellingAPIManager.whitelist.indexOf(word) === -1
+        )
+      })
+      return { misspellings: notLearntMisspellings }
+    } else {
+      return { misspellings }
+    }
   }
 }
 

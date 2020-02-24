@@ -29,7 +29,7 @@ module.exports = {
         misspellings = result.misspellings;
       });
 
-    while (doneFlag === null) {
+    while (doneFlag === false) {
       await sleep(1);
     }
 
@@ -73,9 +73,6 @@ module.exports = {
     }
   },
 }
-
-
-
 
 function sleep(ms) {
   return new Promise((resolve) => {
