@@ -44,17 +44,18 @@ module.exports = {
     return { misspellings: results };
   },
 
+  // one word each time
   async zLearn(params) {
     metrics.inc('spelling-learn', 0.1);
-    params.words = params.words || ["yess", "zevina"];
+    params.word = params.word || "yess";
     const token = params.user_id || "5dea50e08912bd02137651c2";
-    words = params.words;
-    logger.info({ token, words }, 'learning word')
+    word = params.word;
+    logger.info({ token, word }, 'learning word')
 
     let doneFlag = false;
     let errorFlag = false;
 
-    SpellingAPIManager.learnWord(token, params.words, function (error) {
+    SpellingAPIManager.learnWord(token, params, function (error) {
       doneFlag = true;
       if (error != null) {
         logger.err({ err: error, user_id: token, wordCount }, "error processing spelling request");
@@ -67,7 +68,7 @@ module.exports = {
     }
 
     if (errorFlag === true) {
-      return { error: true, words: params.words, message: "error processing spelling request" };
+      return { error: true, word: params.word, message: "error processing spelling request" };
     } else {
       return { error: false, message: "succeeded" };
     }

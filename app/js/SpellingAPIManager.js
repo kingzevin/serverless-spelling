@@ -12,19 +12,19 @@ const REQUEST_LIMIT = 10000
 const SpellingAPIManager = {
   whitelist: ['ShareLaTeX', 'sharelatex', 'LaTeX', 'http', 'https', 'www'],
 
-  learnWord(token, words, callback) {
+  learnWord(token, request, callback) {
     //todo: 找到mongojs的 setting位置,配好,启动mongo容器,试试
     if (callback == null) {
       callback = () => { }
     }
-    if (words == null) {
+    if (request.word == null) {
       return callback(new Error('malformed JSON'))
     }
     if (token == null) {
       return callback(new Error('no token provided'))
     }
 
-    return LearnedWordsManager.learnWord(token, words, callback)
+    return LearnedWordsManager.learnWord(token, request.word, callback)
   },
 }
 
@@ -45,6 +45,7 @@ const promises = {
       const learnedWords = await LearnedWordsManager.promises.getLearnedWords(
         token
       )
+      console.log(learnedWords);
       const notLearntMisspellings = misspellings.filter(m => {
         const word = wordSlice[m.index]
         return (

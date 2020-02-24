@@ -17,7 +17,7 @@ const SpellingAPIController = require('./app/js/SpellingAPIController')
 const HealthCheckController = require('./app/js/HealthCheckController')
 
 function test(params = {}) {
-  const operation = params.operation || "learn";
+  const operation = params.operation || "check";
 
   if (operation === "check")
     return SpellingAPIController.zCheck(params);
