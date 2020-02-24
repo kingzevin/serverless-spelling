@@ -3,48 +3,79 @@
  * Project: toServerless
  */
 const SpellingAPIManager = require('./SpellingAPIManager')
-
-function extractCheckRequestData(req) {
-  const token = req.params ? req.params.user_id : undefined
-  const wordCount =
-    req.body && req.body.words ? req.body.words.length : undefined
-  return { token, wordCount }
-}
+const logger = require('logger-sharelatex')
+const metrics = require('metrics-sharelatex')
 
 module.exports = {
-  check(req, res) {
-    const { token, wordCount } = extractCheckRequestData(req)
-    SpellingAPIManager.runRequest(token, req.body, function (error, result) {
-      if (error != null) {
-        console.log(error);
-        return res.sendStatus(500)
-      }
-      res.send(result)
-    })
-  },
-
   async zCheck(params) {
+    metrics.inc('spelling-check', 0.1)
     params.words = params.words || ["yess", "zevina"];
     const token = params.user_id || "5dea50e08912bd02137651c2";
 
+    let wordCount = params.words.length;
+    logger.info({ token, wordCount }, 'running check')
+
+    let doneFlag = false;
+    let errorFlag = false;
     let misspellings = null;
     SpellingAPIManager.runRequest(
       token, params, function (error, result) {
-        // console.log("1");
+        doneFlag = true;
+        if (error != null) {
+          logger.err({ err: error, user_id: token, wordCount }, "error processing spelling request");
+          errorFlag = true;
+          return;
+        }
         misspellings = result.misspellings;
       });
 
-    while (misspellings === null) {
+    while (doneFlag === null) {
       await sleep(1);
+    }
+
+    if (errorFlag === true) {
+      return { error: true, words: params.words, message: "error processing spelling request" };
     }
 
     let results = [];
     for (let index = 0; index < misspellings.length; index++) {
       results.push({ index: index, word: params.words[misspellings[index].index], suggestions: misspellings[index].suggestions });
     }
-    return {misspellings: results};
-  }
+    return { misspellings: results };
+  },
+
+  zLearn(params) {
+    metrics.inc('spelling-learn', 0.1);
+    params.words = params.words || ["yess", "zevina"];
+    const token = params.user_id || "5dea50e08912bd02137651c2";
+
+    logger.info({ token, params.words }, 'learning word')
+
+    let doneFlag = false;
+    let errorFlag = false;
+
+    SpellingAPIManager.learnWord(token, params.words, function (error) {
+      doneFlag = true;
+      if (error != null) {
+        logger.err({ err: error, user_id: token, wordCount }, "error processing spelling request");
+        errorFlag = true;
+      }
+    });
+
+    while (doneFlag === null) {
+      await sleep(1);
+    }
+
+    if (errorFlag === true) {
+      return { error: true, words: params.words, message: "error processing spelling request" };
+    } else {
+      return { error: false, message: "succeeded" };
+    }
+  },
 }
+
+
+
 
 function sleep(ms) {
   return new Promise((resolve) => {
