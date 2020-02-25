@@ -1,12 +1,11 @@
-const request = require('request')
 const logger = require('logger-sharelatex')
+const SpellingAPIController = require('./SpellingAPIController')
 const settings = require('settings-sharelatex')
-const SpellingAPIController = require('./app/js/SpellingAPIController')
 
 module.exports = {
-  healthCheck() {
-    let params = { words: ['helllo'] };
-    let result = SpellingAPIController.zCheck(params);
+  async healthCheck() {
+    let params = { words: ['helllo'], user_id: settings.healthCheckUserId, language: 'en' };
+    let result = await SpellingAPIController.zCheck(params);
     result = result.result;
     if (result.error) {
       logger.err({ params }, 'health check failed');

@@ -66,7 +66,6 @@ const promises = {
       const learnedWords = await LearnedWordsManager.promises.getLearnedWords(
         token
       )
-      console.log(learnedWords);
       const notLearntMisspellings = misspellings.filter(m => {
         const word = wordSlice[m.index]
         return (

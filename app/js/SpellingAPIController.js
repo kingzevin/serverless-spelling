@@ -19,11 +19,16 @@ function extractLearnRequestData(params) {
   return { token, word }
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 module.exports = {
   async zCheck(params) {
     metrics.inc('spelling-check', 0.1)
     const { token, wordCount } = extractCheckRequestData(params)
-
     logger.info({ token, wordCount }, 'running check')
 
     let doneFlag = false;
@@ -34,10 +39,8 @@ module.exports = {
         if (error != null) {
           logger.err({ err: error, user_id: token, wordCount }, "error processing spelling request");
           errorFlag = true;
-          doneFlag = true;
-          return;
         }
-        misspellings = result.misspellings;
+        misspellings = result.misspellings ? result.misspellings : null;
         doneFlag = true;
       });
 
@@ -171,8 +174,3 @@ module.exports = {
   }
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
