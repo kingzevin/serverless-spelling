@@ -53,7 +53,7 @@ module.exports = {
     for (let index = 0; index < misspellings.length; index++) {
       results.push({ index: index, word: params.words[misspellings[index].index], suggestions: misspellings[index].suggestions });
     }
-    return { result: { misspellings: results, error: false, message: "succeeded" } };
+    return { result: { misspellings: results, message: "passed" } };
   },
 
   // one word each time
@@ -80,7 +80,7 @@ module.exports = {
     if (errorFlag === true) {
       return { result: { error: true, word, message: "error processing spelling request" } };
     } else {
-      return { result: { error: false, message: "succeeded", code: 204 } };
+      return { result: { message: "passed", code: 204 } };
     }
   },
 
@@ -107,7 +107,7 @@ module.exports = {
     if (errorFlag === true) {
       return { result: { error: true, word, message: "error processing spelling request" } };
     } else {
-      return { result: { error: false, message: "succeeded", code: 204 } };
+      return { result: { message: "passed", code: 204 } };
     }
   },
 
@@ -133,7 +133,7 @@ module.exports = {
     if (errorFlag === true) {
       return { result: { error: true, user_id: token, message: "error processing spelling request" } };
     } else {
-      return { result: { error: false, message: "succeeded", code: 204 } };
+      return { result: { message: "passed", code: 204 } };
     }
   },
 
@@ -166,7 +166,7 @@ module.exports = {
     if (errorFlag === true) {
       return { result: { error: true, message: "error processing spelling request" } };
     } else {
-      return { result: { error: false, message: "succeeded", words: learnedWords } };
+      return { result: { message: "passed", words: learnedWords } };
     }
   }
 }

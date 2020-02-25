@@ -32,11 +32,15 @@ function test(params = {}) {
     return SpellingAPIController.zGetDic(params);
   else if(operation === "deleteDic")
     return SpellingAPIController.zDeleteDic(params);
+  else if(operation === "status")
+    return { result: { message: "passed", status: "up" } };
+  else if(operation === "healthCheck")
+    return HealthCheckController.healthCheck();
   else return undefined;
 }
-
-exports.main = test
 
 if (!module.parent) {
   test().then(result => console.log(result));
 }
+
+exports.main = test
