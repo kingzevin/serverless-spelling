@@ -2,6 +2,8 @@
 * Author: Zevin
 * Project: toServerless
 */
+Error.stackTraceLimit = Infinity;
+
 const metrics = require('metrics-sharelatex')
 metrics.initialize('spelling')
 
@@ -24,17 +26,17 @@ function test(params = {}) {
 
   if (operation === "check")
     return SpellingAPIController.zCheck(params);
-  else if(operation === "learn")
+  else if (operation === "learn")
     return SpellingAPIController.zLearn(params);
-  else if(operation === "unlearn")
+  else if (operation === "unlearn")
     return SpellingAPIController.zUnlearn(params);
-  else if(operation === "getDic")
+  else if (operation === "getDic")
     return SpellingAPIController.zGetDic(params);
-  else if(operation === "deleteDic")
+  else if (operation === "deleteDic")
     return SpellingAPIController.zDeleteDic(params);
-  else if(operation === "status")
+  else if (operation === "status")
     return { result: { message: "passed", status: "up" } };
-  else if(operation === "healthCheck")
+  else if (operation === "healthCheck")
     return HealthCheckController.healthCheck();
   else return undefined;
 }
@@ -44,3 +46,4 @@ if (!module.parent) {
 }
 
 exports.main = test
+

@@ -12,40 +12,34 @@ const REQUEST_LIMIT = 10000
 const SpellingAPIManager = {
   whitelist: ['ShareLaTeX', 'sharelatex', 'LaTeX', 'http', 'https', 'www'],
 
-  learnWord(token, request, callback) {
-    if (callback == null) {
-      callback = () => { }
-    }
+  learnWord(token, request) {
     if (request.word == null) {
-      return callback(new Error('malformed JSON'))
+      return new Error('malformed JSON')
     }
     if (token == null) {
-      return callback(new Error('no token provided'))
+      return new Error('no token provided')
     }
 
-    return LearnedWordsManager.learnWord(token, request.word, callback)
+    return LearnedWordsManager.promises.learnWord(token, request.word)
   },
 
-  unlearnWord(token, request, callback) {
-    if (callback == null) {
-      callback = () => { }
-    }
+  unlearnWord(token, request) {
     if (request.word == null) {
-      return callback(new Error('malformed JSON'))
+      return new Error('malformed JSON')
     }
     if (token == null) {
-      return callback(new Error('no token provided'))
+      return new Error('no token provided')
     }
 
-    return LearnedWordsManager.unlearnWord(token, request.word, callback)
+    return LearnedWordsManager.promises.unlearnWord(token, request.word)
   },
 
-  deleteDic(token, callback) {
-    return LearnedWordsManager.deleteUsersLearnedWords(token, callback)
+  deleteDic(token) {
+    return LearnedWordsManager.promises.deleteUsersLearnedWords(token)
   },
 
-  getDic(token, callback) {
-    return LearnedWordsManager.getLearnedWords(token, callback)
+  getDic(token) {
+    return LearnedWordsManager.promises.getLearnedWords(token)
   }
 }
 
@@ -80,7 +74,9 @@ const promises = {
   }
 }
 
-SpellingAPIManager.runRequest = callbackify(promises.runRequest)
+// SpellingAPIManager.runRequest = callbackify(promises.runRequest) 
+// if callbackified, then runRequest will be executed asynchronously
+SpellingAPIManager.runRequest = promises.runRequest
 SpellingAPIManager.promises = promises
 
 module.exports = SpellingAPIManager
