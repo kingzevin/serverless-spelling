@@ -4,7 +4,6 @@
  */
 const ASpell = require('./ASpell')
 const LearnedWordsManager = require('./LearnedWordsManager')
-const { callbackify } = require('util')
 
 // The max number of words checked in a single request
 const REQUEST_LIMIT = 10000

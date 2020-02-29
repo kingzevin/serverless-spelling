@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/sharelatex/serverless-spelling.git"
   },
-  "version": "0.5",
+  "version": "0.5.0",
   "dependencies": {
     "@overleaf/o-error": "^2.0.0",
     "async": "0.1.22",
