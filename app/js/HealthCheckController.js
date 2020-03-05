@@ -1,27 +1,36 @@
+const request = require('request')
 const logger = require('logger-sharelatex')
-const SpellingAPIController = require('./SpellingAPIController')
 const settings = require('settings-sharelatex')
 
 module.exports = {
-  async healthCheck() {
-    let params = { words: ['helllo'], user_id: settings.healthCheckUserId, language: 'en' };
-    let result = await SpellingAPIController.zCheck(params);
-    result = result.result;
-    if (result.error) {
-      logger.err({ params }, 'health check failed');
-      return { result: { error: true, message: "health check failed" } };
+  healthCheck(req, res) {
+    const opts = {
+      url: `http://localhost:3005/user/${settings.healthCheckUserId}/check`,
+      json: {
+        words: ['helllo'],
+        language: 'en'
+      },
+      timeout: 1000 * 20
     }
-    const misspellings = result.misspellings ? result.misspellings[0] : undefined;
-    const numberOfSuggestions = misspellings && misspellings.suggestions ? misspellings.suggestions.length : 0;
+    return request.post(opts, function(err, response, body) {
+      if (err != null) {
+        return res.sendStatus(500)
+      }
 
-    if (numberOfSuggestions > 10) {
-      logger.log('health check passed');
-      return { result: { message: "passed" } };
-    }
-    else {
-      logger.err({ params, numberOfSuggestions }, 'health check failed');
-      return { result: { error: true, message: "health check failed" } };
-    }
+      const misspellings =
+        body && body.misspellings ? body.misspellings[0] : undefined
+      const numberOfSuggestions =
+        misspellings && misspellings.suggestions
+          ? misspellings.suggestions.length
+          : 0
 
+      if (numberOfSuggestions > 10) {
+        logger.log('health check passed')
+        res.sendStatus(200)
+      } else {
+        logger.err({ body, numberOfSuggestions }, 'health check failed')
+        res.sendStatus(500)
+      }
+    })
   }
 }

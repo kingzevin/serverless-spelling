@@ -1,9 +1,14 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 /*
- * Author: Zevin
- * Project: toServerless
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const ASpell = require('./ASpell')
 const LearnedWordsManager = require('./LearnedWordsManager')
+const { callbackify } = require('util')
 
 // The max number of words checked in a single request
 const REQUEST_LIMIT = 10000
@@ -11,40 +16,45 @@ const REQUEST_LIMIT = 10000
 const SpellingAPIManager = {
   whitelist: ['ShareLaTeX', 'sharelatex', 'LaTeX', 'http', 'https', 'www'],
 
-  learnWord(token, request) {
+  learnWord(token, request, callback) {
+    if (callback == null) {
+      callback = () => {}
+    }
     if (request.word == null) {
-      return new Error('malformed JSON')
+      return callback(new Error('malformed JSON'))
     }
     if (token == null) {
-      return new Error('no token provided')
+      return callback(new Error('no token provided'))
     }
 
-    return LearnedWordsManager.promises.learnWord(token, request.word)
+    return LearnedWordsManager.learnWord(token, request.word, callback)
   },
 
-  unlearnWord(token, request) {
+  unlearnWord(token, request, callback) {
+    if (callback == null) {
+      callback = () => {}
+    }
     if (request.word == null) {
-      return new Error('malformed JSON')
+      return callback(new Error('malformed JSON'))
     }
     if (token == null) {
-      return new Error('no token provided')
+      return callback(new Error('no token provided'))
     }
 
-    return LearnedWordsManager.promises.unlearnWord(token, request.word)
+    return LearnedWordsManager.unlearnWord(token, request.word, callback)
   },
 
-  deleteDic(token) {
-    return LearnedWordsManager.promises.deleteUsersLearnedWords(token)
+  deleteDic(token, callback) {
+    return LearnedWordsManager.deleteUsersLearnedWords(token, callback)
   },
 
-  getDic(token) {
-    return LearnedWordsManager.promises.getLearnedWords(token)
+  getDic(token, callback) {
+    return LearnedWordsManager.getLearnedWords(token, callback)
   }
 }
 
 const promises = {
   async runRequest(token, request) {
-    // token means user_id
     if (!request.words) {
       throw new Error('malformed JSON')
     }
@@ -52,9 +62,9 @@ const promises = {
 
     // only the first 10K words are checked
     const wordSlice = request.words.slice(0, REQUEST_LIMIT)
+
     const misspellings = await ASpell.promises.checkWords(lang, wordSlice)
 
-    // for learned words
     if (token) {
       const learnedWords = await LearnedWordsManager.promises.getLearnedWords(
         token
@@ -73,9 +83,7 @@ const promises = {
   }
 }
 
-// SpellingAPIManager.runRequest = callbackify(promises.runRequest) 
-// if callbackified, then runRequest will be executed asynchronously
-SpellingAPIManager.runRequest = promises.runRequest
+SpellingAPIManager.runRequest = callbackify(promises.runRequest)
 SpellingAPIManager.promises = promises
 
 module.exports = SpellingAPIManager

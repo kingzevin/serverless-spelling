@@ -1,19 +1,25 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 /*
- * Author: Zevin
- * Project: toServerless
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const ASpellWorkerPool = require('./ASpellWorkerPool')
 const LRU = require('lru-cache')
+const logger = require('logger-sharelatex')
 const fs = require('fs')
-// const settings = require('settings-sharelatex')
+const settings = require('settings-sharelatex')
 const Path = require('path')
 const { promisify } = require('util')
 
 const OneMinute = 60 * 1000
 const opts = { max: 10000, maxAge: OneMinute * 60 * 10 }
-const cache = new LRU(opts)
+const cache = LRU(opts)
 
-const cacheFsPath = Path.resolve(Path.resolve('cache'), 'spell.cache')
+const cacheFsPath = Path.resolve(settings.cacheDir, 'spell.cache')
 const cacheFsPathTmp = cacheFsPath + '.tmp'
 
 // load any existing cache
@@ -22,6 +28,7 @@ try {
   cache.load(JSON.parse(oldCache))
 } catch (error) {
   const err = error
+  logger.log({ err, cacheFsPath }, 'could not load the cache file')
 }
 
 // write the cache every 30 minutes
@@ -29,8 +36,16 @@ setInterval(function() {
   const dump = JSON.stringify(cache.dump())
   return fs.writeFile(cacheFsPathTmp, dump, function(err) {
     if (err != null) {
+      logger.log({ err }, 'error writing cache file')
       return fs.unlink(cacheFsPathTmp)
     } else {
+      fs.rename(cacheFsPathTmp, cacheFsPath, err => {
+        if (err) {
+          logger.error({ err }, 'error renaming cache file')
+        } else {
+          logger.log({ len: dump.length, cacheFsPath }, 'wrote cache file')
+        }
+      })
     }
   })
 }, 30 * OneMinute)
@@ -79,7 +94,14 @@ class ASpellRunner {
         cache.set(k, v)
       }
 
-
+      logger.info(
+        {
+          hits,
+          total: words.length,
+          hitrate: (hits / words.length).toFixed(2)
+        },
+        'cache hit rate'
+      )
       return callback(null, results)
     })
   }

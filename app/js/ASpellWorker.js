@@ -1,8 +1,15 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 /*
- * Author: Zevin
- * Project: toServerless
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS205: Consider reworking code to avoid use of IIFEs
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const childProcess = require('child_process')
+const logger = require('logger-sharelatex')
+const metrics = require('metrics-sharelatex')
 const _ = require('underscore')
 const OError = require('@overleaf/o-error')
 
@@ -20,11 +27,21 @@ class ASpellWorker {
       '-d',
       language
     ])
-
+    logger.info(
+      { process: this.pipe.pid, lang: this.language },
+      'starting new aspell worker'
+    )
+    metrics.inc('aspellWorker', 1, { status: 'start', method: this.language })
     this.pipe.on('exit', () => {
       this.state = 'killed'
-
-
+      logger.info(
+        { process: this.pipe.pid, lang: this.language },
+        'aspell worker has exited'
+      )
+      metrics.inc('aspellWorker', 1, {
+        status: 'exit',
+        method: this.language
+      })
     })
     this.pipe.on('close', () => {
       const previousWorkerState = this.state
@@ -73,6 +90,7 @@ class ASpellWorker {
         )
         this.callback = null
       } else {
+        logger.warn({ error: err, ...errInfo }, 'aspell worker error')
       }
     })
     this.pipe.stdin.on('error', err => {
@@ -100,7 +118,13 @@ class ASpellWorker {
         )
         this.callback = null
       } else {
-
+        logger.warn(
+          {
+            error: err,
+            ...errInfo
+          },
+          'aspell worker error on stdin'
+        )
       }
     })
 
@@ -120,7 +144,14 @@ class ASpellWorker {
           this.callback(null, output.slice())
           this.callback = null // only allow one callback in use
         } else {
-
+          logger.err(
+            {
+              process: this.pipe.pid,
+              lang: this.language,
+              workerState: this.state
+            },
+            'end of data marker received when callback already used'
+          )
         }
         this.state = 'ready'
         output = ''
@@ -188,12 +219,14 @@ class ASpellWorker {
   }
 
   shutdown(reason) {
+    logger.info({ process: this.pipe.pid, reason }, 'shutting down')
     this.state = 'closing'
     this.closeReason = reason
     return this.pipe.stdin.end()
   }
 
   kill(reason) {
+    logger.info({ process: this.pipe.pid, reason }, 'killing')
     this.closeReason = reason
     if (this.state === 'killed') {
       return

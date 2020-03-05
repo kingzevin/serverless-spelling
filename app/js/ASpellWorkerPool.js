@@ -1,9 +1,16 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 /*
- * Author: Zevin
- * Project: toServerless
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const ASpellWorker = require('./ASpellWorker')
 const _ = require('underscore')
+const logger = require('logger-sharelatex')
+const metrics = require('metrics-sharelatex')
 
 class ASpellWorkerPool {
   static initClass() {
@@ -20,7 +27,10 @@ class ASpellWorkerPool {
 
   create(language) {
     if (this.PROCESS_POOL.length >= this.MAX_WORKERS) {
-
+      logger.log(
+        { maxworkers: this.MAX_WORKERS },
+        'maximum number of workers already running'
+      )
       return null
     }
     const worker = new ASpellWorker(language, this.options)
@@ -33,16 +43,21 @@ class ASpellWorkerPool {
         clearTimeout(worker.idleTimer)
         worker.idleTimer = null
       }
-
+      logger.info(
+        { process: worker.pipe.pid, lang: language },
+        'removing aspell worker from pool'
+      )
       return this.cleanup()
     })
     this.PROCESS_POOL.push(worker)
+    metrics.gauge('aspellWorkerPool-size', this.PROCESS_POOL.length)
     return worker
   }
 
   cleanup() {
     const active = this.PROCESS_POOL.filter(worker => worker.state !== 'killed')
     this.PROCESS_POOL = active
+    return metrics.gauge('aspellWorkerPool-size', this.PROCESS_POOL.length)
   }
 
   check(language, words, timeout, callback) {
