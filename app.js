@@ -1,9 +1,7 @@
 /*
 * Author: Zevin
-* Project: toServerless
+* Project: toServerless - sync
 */
-Error.stackTraceLimit = Infinity;
-
 const metrics = require('metrics-sharelatex')
 metrics.initialize('spelling')
 
