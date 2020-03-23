@@ -14,14 +14,16 @@ metrics.memory.monitor(logger)
 const SpellingAPIController = require('./app/js/SpellingAPIController')
 const express = require('express')
 const server = express()
+
+const runMiddleware = require('run-middleware');
+runMiddleware(server);
+
 metrics.injectMetricsRoute(server)
 const bodyParser = require('body-parser')
 const HealthCheckController = require('./app/js/HealthCheckController')
 
 server.use(bodyParser.json({ limit: '2mb' }))
 server.use(metrics.http.monitor(logger))
-
-
 
 server.del('/user/:user_id', SpellingAPIController.deleteDic)
 server.get('/user/:user_id', SpellingAPIController.getDic)
@@ -32,20 +34,6 @@ server.get('/status', (req, res) => res.send({ status: 'spelling api is up' }))
 
 server.get('/health_check', HealthCheckController.healthCheck)
 
-const settings =
-  Settings.internal && Settings.internal.spelling
-    ? Settings.internal.spelling
-    : undefined
-const host = settings && settings.host ? settings.host : 'localhost'
-const port = settings && settings.port ? settings.port : 3005
-
-server.listen(port, host, function (error) {
-  if (error != null) {
-    throw error
-  }
-  return logger.info(`spelling starting up, listening on ${host}:${port}`)
-})
-
 function test(params = {}) {
   // params e.g.: {
   //  url: '/user/5dea50e08912bd02137651c2/check',
@@ -53,23 +41,52 @@ function test(params = {}) {
   //  words: ["yess", "sharelatex"],
   //  language: 'en'
   // }
+
   const url = params.url || '/user/5dea50e08912bd02137651c2/check';
   const method = params.__ow_method || 'post';
   params.words = params.words || ["yess", "zevina"];
   params.word = params.word || "yess";
 
-  const reqPromise = promisify(request[method]);
+  function invoke(url, bodyJSON) {
+    return new Promise((resolve, reject) => {
+      server.runMiddleware(url, bodyJSON, (code, data) => {
+        if(code == 200)
+          resolve({body:data });
+        else 
+          reject({body: {code, data}})
+      })
+    });
+  }
+
   return (async () => {
-    let result = await reqPromise({
-      url: `http://${host}:${port}${url}`,
-      json: params
-    })
-    return result;
+    let result = await invoke(url, { method, body: params });
+    return result
   })();
 }
 
 if (!module.parent) {
-  console.log(test());
+  (async ()=>{
+    let a = await test();
+    console.log(a);
+  })();
 }
 
-exports.main = test
+exports.main = pure
+
+function pure(params = {}) {
+  function invoke(url, bodyJSON) {
+    return new Promise((resolve, reject) => {
+      server.runMiddleware(url, bodyJSON, (code, data) => {
+        if (code == 200)
+          resolve({ body: data });
+        else
+          reject({ body: { code, data } })
+      })
+    });
+  }
+
+  return (async () => {
+    let result = await invoke(params.url, { method: params.__ow_method, body: params });
+    return result
+  })();
+}

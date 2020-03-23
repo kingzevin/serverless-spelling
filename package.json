@@ -16,6 +16,7 @@
     "metrics-sharelatex": "^2.4.0",
     "mongojs": "^3.1.0",
     "request": "^2.88.0",
+    "run-middleware": "^0.9.10",
     "settings-sharelatex": "^1.1.0",
     "underscore": "^1.9.2"
   }
