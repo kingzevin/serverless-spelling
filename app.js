@@ -29,15 +29,7 @@ server.post('/user/:user_id/check', SpellingAPIController.check)
 server.post('/user/:user_id/learn', SpellingAPIController.learn)
 server.post('/user/:user_id/unlearn', SpellingAPIController.unlearn)
 server.get('/status', (req, res) => res.send({ status: 'spelling api is up' }))
-
 server.get('/health_check', HealthCheckController.healthCheck)
-
-if (!module.parent) {
-  (async ()=>{
-    let a = await test();
-    console.log(a);
-  })();
-}
 
 exports.main = pure
 
@@ -59,6 +51,12 @@ function pure(params = {}) {
   })();
 }
 
+if (!module.parent) {
+  (async ()=>{
+    let a = await test();
+    console.log(a);
+  })();
+}
 
 function test(params = {}) {
   // params e.g.: {
