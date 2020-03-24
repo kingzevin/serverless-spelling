@@ -1,5 +1,3 @@
-const request = require('request')
-const { promisify } = require('util')
 const metrics = require('metrics-sharelatex')
 metrics.initialize('spelling')
 
@@ -34,6 +32,34 @@ server.get('/status', (req, res) => res.send({ status: 'spelling api is up' }))
 
 server.get('/health_check', HealthCheckController.healthCheck)
 
+if (!module.parent) {
+  (async ()=>{
+    let a = await test();
+    console.log(a);
+  })();
+}
+
+exports.main = pure
+
+function pure(params = {}) {
+  function invoke(url, bodyJSON) {
+    return new Promise((resolve, reject) => {
+      server.runMiddleware(url, bodyJSON, (code, data) => {
+        if (code == 200)
+          resolve({ body: data });
+        else
+          reject({ body: { code, data } })
+      })
+    });
+  }
+
+  return (async () => {
+    let result = await invoke(params.url, { method: params.__ow_method, body: params });
+    return result
+  })();
+}
+
+
 function test(params = {}) {
   // params e.g.: {
   //  url: '/user/5dea50e08912bd02137651c2/check',
@@ -60,33 +86,6 @@ function test(params = {}) {
 
   return (async () => {
     let result = await invoke(url, { method, body: params });
-    return result
-  })();
-}
-
-if (!module.parent) {
-  (async ()=>{
-    let a = await test();
-    console.log(a);
-  })();
-}
-
-exports.main = pure
-
-function pure(params = {}) {
-  function invoke(url, bodyJSON) {
-    return new Promise((resolve, reject) => {
-      server.runMiddleware(url, bodyJSON, (code, data) => {
-        if (code == 200)
-          resolve({ body: data });
-        else
-          reject({ body: { code, data } })
-      })
-    });
-  }
-
-  return (async () => {
-    let result = await invoke(params.url, { method: params.__ow_method, body: params });
     return result
   })();
 }
