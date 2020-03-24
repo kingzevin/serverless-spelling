@@ -34,7 +34,7 @@ server.get('/health_check', HealthCheckController.healthCheck)
 exports.main = pure
 
 function pure(params = {}) {
-  function invoke(url, bodyJSON) {
+  function route(url, bodyJSON) {
     return new Promise((resolve, reject) => {
       server.runMiddleware(url, bodyJSON, (code, data) => {
         if (code == 200)
@@ -46,7 +46,7 @@ function pure(params = {}) {
   }
 
   return (async () => {
-    let result = await invoke(params.url, { method: params.__ow_method, body: params });
+    let result = await route(params.url, { method: params.__ow_method, body: params });
     return result
   })();
 }
