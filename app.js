@@ -53,7 +53,7 @@ function test(params = {}) {
   //  words: ["yess", "sharelatex"],
   //  language: 'en'
   // }
-  const url = params.url || '/user/5dea50e08912bd02137651c2/check';
+  const url = params.__ow_path || '/user/5ec7b3d14857fc00a946704b/check';
   const method = params.__ow_method || 'post';
   params.words = params.words || ["yess", "zevina"];
   params.word = params.word || "yess";
