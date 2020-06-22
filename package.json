@@ -1,6 +1,5 @@
 {
-  "name": "spelling-zevin",
-  "author": "Zevin",
+  "name": "serverless-spelling",
   "description": "A JSON API wrapper around aspell for Serverless",
   "main": "app.js",
   "repository": {
