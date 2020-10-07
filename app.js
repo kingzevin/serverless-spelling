@@ -1,5 +1,11 @@
-const request = require('request')
-const { promisify } = require('util')
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS103: Rewrite code to no longer use __guard__
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+process.env["MONGO_CONNECTION_STRING"] = `mongodb://172.17.0.1:27017/sharelatex`;
 const metrics = require('metrics-sharelatex')
 metrics.initialize('spelling')
 
@@ -37,129 +43,43 @@ const settings =
 const host = settings && settings.host ? settings.host : 'localhost'
 const port = settings && settings.port ? settings.port : 3005
 
-server.listen(port, host, function (error) {
-  if (error != null) {
-    throw error
-  }
-  return logger.info(`spelling starting up, listening on ${host}:${port}`)
-})
+// if (!module.parent) {
+  // application entry point, called directly
+  server.listen(port, host, function(error) {
+    if (error != null) {
+      throw error
+    }
+    return logger.info(`spelling starting up, listening on ${host}:${port}`)
+  })
+// }
 
-
-
-function test(params = {}) {
-  const operation = params.operation || "getDic";
-  const user_id = params.user_id || "5dea50e08912bd02137651c2";
-  const word = params.word || "yess";
-  const words = params.words || ["yess", "zevina"];
-
-  const opts = { timeout: 1000 * 20 }
-
-  if (operation === "check") {
-    opts.json = { words, language: 'en' };
-    opts.url = `http://localhost:3005/user/${user_id}/check`;
-    const postReq = promisify(request.post);
-
-    return (async () => {
-      let result = await postReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: `error processing ${operation} request`, status: "failed" } };
-      }
-      let misspellings = result.body.misspellings;
-      let results = [];
-      for (let index = 0; index < misspellings.length; index++) {
-        results.push({ index: index, word: words[misspellings[index].index], suggestions: misspellings[index].suggestions });
-      }
-      return { result: { misspellings: results, status: "passed" } };
-    })();
-  }
-  else if (operation === "learn") {
-    opts.json = { word, language: 'en' };
-    opts.url = `http://localhost:3005/user/${user_id}/learn`;
-    const postReq = promisify(request.post);
-
-    return (async () => {
-      let result = await postReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: `error processing ${operation} request`, status: "failed", statusCode } };
-      }
-      return { result: { word, message: "learning passed", status: "passed", statusCode } };
-    })();
-  }
-  else if (operation === "unlearn") {
-    opts.json = { word, language: 'en' };
-    opts.url = `http://localhost:3005/user/${user_id}/unlearn`;
-    const postReq = promisify(request.post);
-
-    return (async () => {
-      let result = await postReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: `error processing ${operation} request`, status: "failed", statusCode } };
-      }
-      return { result: { word, message: "unlearning passed", status: "passed", statusCode } };
-    })();
-  }
-  else if (operation === "getDic") {
-    opts.url = `http://localhost:3005/user/${user_id}`;
-    const getReq = promisify(request.get);
-
-    return (async () => {
-      let result = await getReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: `error processing ${operation} request`, status: "failed" }, statusCode };
-      }
-      // return {result: {words:result.body}}
-      return { result: { words:result.body, message: "got dic", status: "passed", statusCode } };
-    })();
-  }
-  else if (operation === "deleteDic") {
-    opts.url = `http://localhost:3005/user/${user_id}`;
-    const delReq = promisify(request.del);
-
-    return (async () => {
-      let result = await delReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: `error processing ${operation} request`, status: "failed" }, statusCode };
-      }
-      return { result: { message: "got dic", status: "passed", statusCode } };
-    })();
-  }
-  else if (operation === "status") {
-    opts.url = `http://localhost:3005/status`;
-    const getReq = promisify(request.get);
-
-    return (async () => {
-      let result = await getReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: `error processing ${operation} request`, status: "failed" }, statusCode };
-      }
-      return { result: { message: "up", status: "passed", statusCode } };
-    })();
-  }
-  else if (operation === "healthCheck") {
-    opts.url = `http://localhost:3005/health_check`;
-    const getReq = promisify(request.get);
-
-    return (async () => {
-      let result = await getReq(opts);
-      let statusCode = result.statusCode;
-      if (statusCode == 500) {
-        return { result: { message: "health check failed", status: "failed", statusCode } };
-      }
-      return { result: { message: "health check passed", status: "passed", statusCode } };
-    })();
-  }
-
-
+exports.main = main
+function main(params = {}){
+  const url = params.__ow_path
+  const method = params.__ow_method
+  const headers = params.__ow_headers
+  
+  const { promisify } = require('util')
+  const request = require("request")
+  const reqPromise = promisify(request[method]);
+  return (async () => {
+    let result;
+    let opt={}
+    opt['headers'] = headers;
+    opt['url'] = `http://${host}:${port}${url}`;
+    let str = params.__ow_body || '';
+    if(str !== "" && Buffer.from(str, 'base64').toString('base64') === str){
+      // base64
+      params.__ow_body = Buffer.from(str, 'base64').toString('ascii');
+    }
+    opt['body'] = params.__ow_body;
+    if(params.__ow_query !== ""){
+      const qs = '?' + params.__ow_query;
+      opt['url'] = opt['url'] + qs;
+    }
+    result = await reqPromise(opt);
+    var response = JSON.parse(JSON.stringify(result));
+    delete response.request
+    return response
+  })();
 }
-
-if (!module.parent) {
-  test().then(result => console.log(result));
-}
-
-exports.main = test
