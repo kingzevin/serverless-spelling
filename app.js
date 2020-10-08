@@ -56,7 +56,7 @@ const port = settings && settings.port ? settings.port : 3005
 exports.main = main
 function main(params = {}){
   const url = params.__ow_path
-  const method = params.__ow_method
+  const method = params.__ow_method == 'delete' ? 'del' : params.__ow_method
   const headers = params.__ow_headers
   
   const { promisify } = require('util')
